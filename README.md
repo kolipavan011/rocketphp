@@ -2,7 +2,7 @@
 
 [![PHP Version](https://img.shields.io/badge/php-%5E8.2%20%7C%7C%20%5E8.3-blue.svg)](https://php.net)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-66%20passed-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/tests-79%20passed-brightgreen.svg)]()
 [![Benchmark](https://img.shields.io/badge/bootstrap-15.8%C2%B5s-orange.svg)]()
 
 **Rocketphp** is an ultra-fast, secure-by-default, and extensible PHP MVC framework engineered from first principles. It delivers the expressive developer ergonomics of Laravel with a minimal memory footprint, microsecond-level execution speeds, and an extensible service provider architecture.
@@ -153,6 +153,7 @@ php rocket make:model User
 php rocket make:middleware AuthMiddleware
 php rocket make:migration create_posts_table
 php rocket make:provider RepositoryServiceProvider
+php rocket make:component Alert
 
 # Database migrations
 php rocket migrate
@@ -334,6 +335,82 @@ Templates are stored in `resources/views/` as `.rocket.php` files:
         @endforeach
     </ul>
 @endsection
+```
+
+#### View Components (`<x-...>`)
+
+Rocketphp supports both **Anonymous Template Components** and **Class-Based Components**:
+
+##### 1. Anonymous Components
+Store reusable template components in `resources/views/components/alert.rocket.php`:
+
+```blade
+@props(['type' => 'info', 'title' => null])
+
+<div {{ $attributes->merge(['class' => 'alert alert-' . $type]) }}>
+    @if ($title)
+        <strong>{{ $title }}</strong>
+    @endif
+    {{ $slot }}
+</div>
+```
+
+Invoke from any template with plain attributes, bound PHP expressions (`:prop="$var"`), and boolean flags:
+```html
+<x-alert type="danger" title="Error!" :dismissible="true" class="shadow-lg" id="alert-box">
+    Something went wrong!
+</x-alert>
+```
+
+##### 2. Named Slots & Attributes
+Components seamlessly accept default and named slots:
+```html
+<x-card>
+    <x-slot:header class="card-header font-bold">
+        <h3>User Profile</h3>
+    </x-slot:header>
+
+    <p>User bio details...</p>
+
+    <x-slot:footer>
+        <button class="btn btn-primary">Save</button>
+    </x-slot:footer>
+</x-card>
+```
+
+##### 3. Class-Based Components
+Generate component classes and template pairs using Rocket CLI:
+```bash
+php rocket make:component UserBadge
+# Or create an inline component:
+php rocket make:component UserBadge --inline
+```
+
+This creates [`app/View/Components/UserBadge.php`](file:///e:/WWW/rocketphp/app/View/Components/UserBadge.php):
+```php
+namespace App\View\Components;
+
+use Rocket\View\Component;
+
+class UserBadge extends Component
+{
+    public function __construct(
+        public string $user,
+        public string $role = 'member'
+    ) {
+        parent::__construct();
+    }
+
+    public function render(): string
+    {
+        return 'components.user-badge';
+    }
+}
+```
+
+Invoke via kebab-case:
+```html
+<x-user-badge user="Alice" role="admin" />
 ```
 
 ---

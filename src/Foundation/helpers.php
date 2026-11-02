@@ -43,6 +43,20 @@ if (!function_exists('config')) {
     }
 }
 
+if (!function_exists('e')) {
+    /**
+     * Escape HTML special characters in a string, except for HtmlableInterface objects.
+     */
+    function e(mixed $value): string
+    {
+        if ($value instanceof \Rocket\View\Contracts\HtmlableInterface) {
+            return $value->toHtml();
+        }
+
+        return htmlspecialchars((string) ($value ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    }
+}
+
 if (!function_exists('view')) {
     /**
      * Get the evaluated view contents for the given view.

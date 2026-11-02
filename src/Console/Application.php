@@ -9,6 +9,7 @@ use Rocket\Console\Commands\CacheClearCommand;
 use Rocket\Console\Commands\ConfigCacheCommand;
 use Rocket\Console\Commands\ConfigClearCommand;
 use Rocket\Console\Commands\MakeCommandCommand;
+use Rocket\Console\Commands\MakeComponentCommand;
 use Rocket\Console\Commands\MakeControllerCommand;
 use Rocket\Console\Commands\MakeMiddlewareCommand;
 use Rocket\Console\Commands\MakeMigrationCommand;
@@ -66,6 +67,7 @@ class Application
             new MakeMiddlewareCommand($this->app),
             new MakeMigrationCommand($this->app),
             new MakeProviderCommand($this->app),
+            new MakeComponentCommand($this->app),
             new CacheClearCommand($this->app),
             new RouteCacheCommand($this->app),
             new RouteClearCommand($this->app),

@@ -122,30 +122,29 @@
         </p>
 
         <div class="grid">
-            <div class="card">
-                <h3>⚡ Sub-Millisecond Speed</h3>
-                <p>Compiled array routing, reflection caching, and lightweight execution pipeline booting in <strong>15.8 microseconds</strong>.</p>
-            </div>
-            <div class="card">
-                <h3>🛡️ Secure by Default</h3>
-                <p>Built-in CSRF defense, CSP & HSTS security headers, Argon2id password hashing, and parameterized query builder.</p>
-            </div>
-            <div class="card">
-                <h3>⚡ Service Providers</h3>
-                <p>Robust service provider architecture with registered and bootable lifecycles for clean dependency injection and modular configuration.</p>
-            </div>
-            <div class="card">
-                <h3>🗄️ Fluent Active Record</h3>
-                <p>Lightweight ORM with expressive relationships, batch eager loading (no N+1), migrations, and soft deletes.</p>
-            </div>
-            <div class="card">
-                <h3>🎨 Blade-Like Templating</h3>
-                <p>Compiled template engine with automatic XSS escaping, inheritance (<code>@extends</code>), sections, and components.</p>
-            </div>
-            <div class="card">
-                <h3>🛠️ Rocket CLI Tool</h3>
-                <p>Full suite of developer tools (<code>php rocket</code>) for code scaffolding, migrations, caching, and serving.</p>
-            </div>
+            <x-feature-card title="Sub-Millisecond Speed" icon="⚡">
+                Compiled array routing, reflection caching, and lightweight execution pipeline booting in <strong>15.8 microseconds</strong>.
+            </x-feature-card>
+
+            <x-feature-card title="Secure by Default" icon="🛡️">
+                Built-in CSRF defense, CSP & HSTS security headers, Argon2id password hashing, and parameterized query builder.
+            </x-feature-card>
+
+            <x-feature-card title="Service Providers" icon="⚡">
+                Robust service provider architecture with registered and bootable lifecycles for clean dependency injection and modular configuration.
+            </x-feature-card>
+
+            <x-feature-card title="Fluent Active Record" icon="🗄️">
+                Lightweight ORM with expressive relationships, batch eager loading (no N+1), migrations, and soft deletes.
+            </x-feature-card>
+
+            <x-feature-card title="Blade-Like Templating" icon="🎨">
+                Compiled template engine with automatic XSS escaping, inheritance (<code>@extends</code>), sections, and components (<code>&lt;x-...&gt;</code>).
+            </x-feature-card>
+
+            <x-feature-card title="Rocket CLI Tool" icon="🛠️">
+                Full suite of developer tools (<code>php rocket</code>) for code scaffolding, migrations, caching, and serving.
+            </x-feature-card>
         </div>
 
         <footer>

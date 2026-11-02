@@ -100,33 +100,41 @@ class Compiler implements CompilerInterface
             }, $value);
         }
 
-        // 3. Raw echo {!! $var !!}
+        // 3. Props directive @props(['type' => 'info'])
+        $value = preg_replace_callback('/@props\s*\((.*?)\)/s', function ($matches) {
+            return '<?php extract($this->extractProps(' . $matches[1] . ', $__data, $attributes ?? null)); ?>';
+        }, $value);
+
+        // 4. Component and Slot tags (<x-...>, <x-slot:...>)
+        $value = $this->compileComponents($value);
+
+        // 5. Raw echo {!! $var !!}
         $value = preg_replace('/\{!!\s*(.+?)\s*!!\}/s', '<?= $1 ?>', $value);
 
-        // 4. Escaped echo {{ $var }}
+        // 6. Escaped echo {{ $var }} (uses e() to escape HTML safely while preserving HtmlableInterface objects)
         $value = preg_replace(
             '/\{\{\s*(.+?)\s*\}\}/s',
-            '<?= htmlspecialchars((string)($1), ENT_QUOTES | ENT_SUBSTITUTE, \'UTF-8\') ?>',
+            '<?= e($1) ?>',
             $value
         );
 
-        // 5. Template inheritance directives
+        // 7. Template inheritance directives
         $value = preg_replace('/@extends\s*\((.*?)\)/', '<?php $this->extend($1); ?>', $value);
         $value = preg_replace('/@section\s*\((.*?)\)/', '<?php $this->startSection($1); ?>', $value);
         $value = preg_replace('/@endsection/', '<?php $this->endSection(); ?>', $value);
         $value = preg_replace('/@yield\s*\((.*?)\)/', '<?= $this->yieldContent($1); ?>', $value);
 
-        // 6. Component and partial includes
+        // 8. Partial includes
         $value = preg_replace_callback('/@include\s*\((.*?)\)/', function ($matches) {
             return '<?= $this->renderPartial(' . $matches[1] . ', $__data); ?>';
         }, $value);
 
-        // 7. Security directives
+        // 9. Security directives
         $value = preg_replace('/@csrf/', '<?= csrf_field(); ?>', $value);
         $value = preg_replace('/@method\s*\((.*?)\)/', '<?= method_field($1); ?>', $value);
         $value = preg_replace('/@vite\s*\((.*?)\)/', '<?= vite($1); ?>', $value);
 
-        // 8. Conditionals
+        // 10. Conditionals
         $value = preg_replace('/@if\s*\((.*?)\)/', '<?php if ($1): ?>', $value);
         $value = preg_replace('/@elseif\s*\((.*?)\)/', '<?php elseif ($1): ?>', $value);
         $value = preg_replace('/@else/', '<?php else: ?>', $value);
@@ -141,7 +149,7 @@ class Compiler implements CompilerInterface
         $value = preg_replace('/@empty\s*\((.*?)\)/', '<?php if (empty($1)): ?>', $value);
         $value = preg_replace('/@endempty/', '<?php endif; ?>', $value);
 
-        // 9. Loops
+        // 11. Loops
         $value = preg_replace('/@foreach\s*\((.*?)\)/', '<?php foreach ($1): ?>', $value);
         $value = preg_replace('/@endforeach/', '<?php endforeach; ?>', $value);
 
@@ -151,11 +159,126 @@ class Compiler implements CompilerInterface
         $value = preg_replace('/@while\s*\((.*?)\)/', '<?php while ($1): ?>', $value);
         $value = preg_replace('/@endwhile/', '<?php endwhile; ?>', $value);
 
-        // 10. Direct PHP execution
+        // 12. Direct PHP execution
         $value = preg_replace('/@php/', '<?php', $value);
         $value = preg_replace('/@endphp/', '?>', $value);
 
         return $value;
+    }
+
+    /**
+     * Compile view components and slot tags.
+     */
+    public function compileComponents(string $value): string
+    {
+        // Safe, non-backtracking attribute matching pattern
+        $attrPattern = '(?<attrs>(?>\s++[^\s"\'><=\/]++(?:\s*=\s*(?:"[^"]*"|\'[^\']*\'|[^\s"\'><=\/]++))?)*+)';
+
+        // 1. Slot tags (opening and self-closing)
+        $slotPattern = '/<x-slot(?::(?<name1>[a-zA-Z0-9\-_]+)|\s+name=["\'](?<name2>[a-zA-Z0-9\-_]+)["\'])' . $attrPattern . '\s*+(?<selfClosing>\/)?\s*+>/s';
+        $value = preg_replace_callback($slotPattern, function ($matches) {
+            $name = !empty($matches['name1']) ? $matches['name1'] : $matches['name2'];
+            $attrs = $this->compileAttributes($matches['attrs'] ?? '');
+            if (!empty($matches['selfClosing'])) {
+                return '<?php $this->startSlot(\'' . $name . '\', ' . $attrs . '); $this->endSlot(); ?>';
+            }
+            return '<?php $this->startSlot(\'' . $name . '\', ' . $attrs . '); ?>';
+        }, $value);
+
+        // 2. Closing slot tags: </x-slot:header> or </x-slot>
+        $value = preg_replace(
+            '/<\/x-slot(?::[a-zA-Z0-9\-_]+)?\s*>/s',
+            '<?php $this->endSlot(); ?>',
+            $value
+        );
+
+        // 3. Component tags (opening and self-closing)
+        $componentPattern = '/<x-(?!slot[\s:>])(?<name>[a-zA-Z0-9\-_\.]+)' . $attrPattern . '\s*+(?<selfClosing>\/)?\s*+>/s';
+        $value = preg_replace_callback($componentPattern, function ($matches) {
+            $name = $matches['name'];
+            $attrs = $this->compileAttributes($matches['attrs'] ?? '');
+            if (!empty($matches['selfClosing'])) {
+                return '<?= $this->renderComponentDirect(\'' . $name . '\', ' . $attrs . '); ?>';
+            }
+            return '<?php $this->startComponent(\'' . $name . '\', ' . $attrs . '); ?>';
+        }, $value);
+
+        // 4. Closing component tags: </x-alert>
+        $value = preg_replace_callback(
+            '/<\/x-(?!slot[\s:>])([a-zA-Z0-9\-_\.]+)\s*>/s',
+            function ($matches) {
+                return '<?= $this->renderComponent(\'' . $matches[1] . '\'); ?>';
+            },
+            $value
+        );
+
+        return $value;
+    }
+
+    /**
+     * Compile component attribute string into a valid PHP array expression.
+     */
+    public function compileAttributes(string $attributeString): string
+    {
+        $attributeString = trim($attributeString);
+        if ($attributeString === '') {
+            return '[]';
+        }
+
+        $pattern = '/
+            (?<name>[:\w\-\.]+)(?:\s*=\s*(?:
+                "(?<dval>[^"]*)" |
+                \'(?<sval>[^\']*)\' |
+                (?<uval>[^\s"\'>]+)
+            ))?
+        /x';
+
+        preg_match_all($pattern, $attributeString, $matches, PREG_SET_ORDER);
+
+        $attributes = [];
+
+        foreach ($matches as $match) {
+            $rawName = $match['name'];
+            if ($rawName === '' || $rawName === '/') {
+                continue;
+            }
+
+            $hasValue = (isset($match['dval']) && $match['dval'] !== '')
+                || (isset($match['sval']) && $match['sval'] !== '')
+                || (isset($match['uval']) && $match['uval'] !== '')
+                || str_contains($match[0], '=');
+
+            $value = $match['dval'] ?? ($match['sval'] ?? ($match['uval'] ?? ''));
+
+            // Escaped colon "::class" -> literal string ":class"
+            if (str_starts_with($rawName, '::')) {
+                $name = substr($rawName, 1);
+                $attributes[] = var_export($name, true) . ' => ' . var_export($value, true);
+                continue;
+            }
+
+            // Bound PHP expression ":attr" -> evaluated as PHP code
+            if (str_starts_with($rawName, ':')) {
+                $name = substr($rawName, 1);
+                $expression = trim($value);
+                if ($expression === '') {
+                    $expression = 'null';
+                }
+                $attributes[] = var_export($name, true) . ' => (' . $expression . ')';
+                continue;
+            }
+
+            // Boolean flag attribute (e.g. "disabled", "required")
+            if (!$hasValue) {
+                $attributes[] = var_export($rawName, true) . ' => true';
+                continue;
+            }
+
+            // Standard HTML string attribute
+            $attributes[] = var_export($rawName, true) . ' => ' . var_export($value, true);
+        }
+
+        return '[' . implode(', ', $attributes) . ']';
     }
 }
 

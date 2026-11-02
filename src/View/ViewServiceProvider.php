@@ -26,7 +26,7 @@ class ViewServiceProvider extends ServiceProvider
         $this->app->singleton('view', function () {
             $compiler = $this->app->make('view.compiler');
             $viewsPath = $this->app->resourcePath('views');
-            return new ViewEngine($compiler, [$viewsPath]);
+            return new ViewEngine($compiler, [$viewsPath], $this->app);
         });
         $this->app->alias('view', ViewEngineInterface::class);
         $this->app->alias('view', ViewEngine::class);
