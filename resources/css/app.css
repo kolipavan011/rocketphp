@@ -1,0 +1,19 @@
+/* Rocketphp Framework Stylesheet */
+:root {
+    --rocket-primary: #38bdf8;
+    --rocket-accent: #f43f5e;
+    --rocket-bg: #0f172a;
+    --rocket-surface: #1e293b;
+    --rocket-text: #f8fafc;
+    --rocket-muted: #94a3b8;
+    --rocket-border: #334155;
+}
+
+body {
+    background-color: var(--rocket-bg);
+    color: var(--rocket-text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+

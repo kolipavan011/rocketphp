@@ -1,0 +1,40 @@
+{
+    "name": "rocketphp/framework",
+    "description": "A High-Performance, Secure, Extensible PHP MVC Framework",
+    "type": "project",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2 || ^8.3"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Rocket\\": "src/",
+            "App\\": "app/"
+        },
+        "files": [
+            "src/Foundation/helpers.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Rocket\\Tests\\": "tests/"
+        }
+    },
+    "bin": [
+        "bin/rocket"
+    ],
+    "scripts": {
+        "test": "phpunit",
+        "benchmark": "php bin/benchmark"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
