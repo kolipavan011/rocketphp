@@ -20,6 +20,8 @@ use Rocket\Console\Commands\RouteCacheCommand;
 use Rocket\Console\Commands\RouteClearCommand;
 use Rocket\Console\Commands\RouteListCommand;
 use Rocket\Console\Commands\ServeCommand;
+use Rocket\Console\Commands\StorageLinkCommand;
+use Rocket\Console\Commands\StorageUnlinkCommand;
 use Rocket\Foundation\Application as CoreApp;
 use InvalidArgumentException;
 
@@ -73,6 +75,8 @@ class Application
             new RouteClearCommand($this->app),
             new ConfigCacheCommand($this->app),
             new ConfigClearCommand($this->app),
+            new StorageLinkCommand($this->app),
+            new StorageUnlinkCommand($this->app),
         ];
 
         foreach ($defaults as $command) {

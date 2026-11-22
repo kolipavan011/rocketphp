@@ -10,12 +10,15 @@
 !/storage/logs/.gitkeep
 /storage/framework/*
 !/storage/framework/.gitkeep
+/storage/public/*
+!/storage/public/.gitkeep
 /bootstrap/cache/*
 !/bootstrap/cache/.gitkeep
 /database/*.sqlite
 /node_modules/
 /public/build
 /public/hot
+/public/storage
 .DS_Store
 Thumbs.db
 

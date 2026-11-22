@@ -151,3 +151,33 @@ if (!function_exists('vite')) {
         return app('vite')($entrypoints, $buildDirectory);
     }
 }
+
+if (!function_exists('asset')) {
+    /**
+     * Generate an asset path for the application.
+     */
+    function asset(string $path): string
+    {
+        return '/' . ltrim($path, '/');
+    }
+}
+
+if (!function_exists('storage_path')) {
+    /**
+     * Get the path to the storage folder.
+     */
+    function storage_path(string $path = ''): string
+    {
+        return app()->storagePath($path);
+    }
+}
+
+if (!function_exists('public_path')) {
+    /**
+     * Get the path to the public folder.
+     */
+    function public_path(string $path = ''): string
+    {
+        return app()->publicPath($path);
+    }
+}

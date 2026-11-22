@@ -2,7 +2,7 @@
 
 [![PHP Version](https://img.shields.io/badge/php-%5E8.2%20%7C%7C%20%5E8.3-blue.svg)](https://php.net)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-79%20passed-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/tests-84%20passed-brightgreen.svg)]()
 [![Benchmark](https://img.shields.io/badge/bootstrap-15.8%C2%B5s-orange.svg)]()
 
 **Rocketphp** is an ultra-fast, secure-by-default, and extensible PHP MVC framework engineered from first principles. It delivers the expressive developer ergonomics of Laravel with a minimal memory footprint, microsecond-level execution speeds, and an extensible service provider architecture.
@@ -80,6 +80,7 @@ rocketphp/
 │   └── migrations/
 ├── public/                           # Web Server Document Root
 │   ├── index.php                     # HTTP Front Controller
+│   ├── storage                       # Symlink to storage/public
 │   └── .htaccess                     # Apache Rewrites
 ├── resources/                        # Views & Templates
 │   └── views/
@@ -88,7 +89,8 @@ rocketphp/
 ├── routes/                           # Route Definitions
 │   ├── web.php
 │   └── api.php
-├── storage/                          # Cache, Logs, Compiled Views
+├── storage/                          # Cache, Logs, Uploads
+│   ├── public/                       # Publicly accessible file storage
 │   ├── cache/views/                  # Compiled Blade Templates
 │   ├── cache/data/                   # File Cache Storage
 │   └── framework/
@@ -157,6 +159,10 @@ php rocket make:component Alert
 
 # Database migrations
 php rocket migrate
+
+# Storage symlink
+php rocket storage:link
+php rocket storage:unlink
 
 # Performance caching
 php rocket route:cache
@@ -640,6 +646,35 @@ To reference static assets (images, fonts, SVGs) processed by Vite:
 ```html
 <img src="{{ Vite::asset('resources/images/logo.svg') }}" alt="Logo">
 ```
+
+---
+
+### 10. Public Storage & Symbolic Linking
+
+Publicly accessible files (user avatars, uploaded documents, media files) should be stored in `storage/public/`. To make these files directly accessible from the web, Rocketphp provides the `storage:link` command which creates a symbolic link (or NTFS directory junction on Windows) from `storage/public` to `public/storage`:
+
+#### Creating the Symbolic Link
+```bash
+php rocket storage:link
+```
+
+#### Re-creating or Forcing Link
+```bash
+php rocket storage:link --force
+```
+
+#### Removing the Link
+```bash
+php rocket storage:unlink
+```
+
+#### Accessing Public Files
+Any file placed in `storage/public/avatars/user.jpg` is immediately accessible through:
+- **Direct Web URL**: `/storage/avatars/user.jpg`
+- **Asset Helper**: `{{ asset('storage/avatars/user.jpg') }}`
+- **Path Helpers**:
+  - `storage_path('public/avatars/user.jpg')` resolves the internal disk path.
+  - `public_path('storage/avatars/user.jpg')` resolves the web server public path.
 
 ---
 
